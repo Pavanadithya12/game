@@ -343,7 +343,7 @@ export default function LobbyPage() {
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5 mb-2.5">
                   <Sparkles size={14} className="text-cyan-600" /> Word Categories
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="max-h-48 overflow-y-auto p-2 border border-slate-200 rounded-2xl bg-slate-50 flex flex-wrap gap-2 shadow-inner">
                   {CATEGORIES.map((cat) => {
                     const active = currentCategories.includes(cat.id);
                     return (
@@ -353,8 +353,8 @@ export default function LobbyPage() {
                         onClick={() => toggleCategory(cat.id)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
                           active
-                            ? 'bg-cyan-100 text-cyan-800 border-cyan-400 shadow-sm'
-                            : 'bg-slate-100 text-slate-600 border-slate-300 hover:border-slate-400 disabled:opacity-50 cursor-pointer'
+                            ? 'bg-cyan-500 text-white border-cyan-600 shadow-sm'
+                            : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 disabled:opacity-50 cursor-pointer'
                         }`}
                       >
                         {active && <Check size={12} />}
