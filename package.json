@@ -7,7 +7,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "postinstall": "npm install --prefix client && npm install --prefix server",
+    "postinstall": "npm install --include=dev --prefix client && npm install --include=dev --prefix server",
     "build": "npm run build --prefix client && npm run build --prefix server",
     "start": "node server/dist/index.js"
   }
