@@ -18,6 +18,14 @@ import { seedDb } from './db/seedRunner.js';
 dotenv.config({ path: join(process.cwd(), '..', '.env') });
 dotenv.config({ path: join(process.cwd(), '.env') });
 
+process.on('uncaughtException', (err) => {
+  console.log('[Server Safety] uncaughtException caught:', err.message);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.log('[Server Safety] unhandledRejection caught:', reason);
+});
+
 const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json());
