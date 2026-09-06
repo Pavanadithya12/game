@@ -44,6 +44,7 @@ export interface RoomSettings {
   maxPlayers?: number;
   totalRounds?: number;
   turnDuration?: number; // seconds: 60, 70, 80, 90, etc.
+  maxClues?: number; // number of clues/hints: 3, 4, 5, 6
   selectedCategories?: string[];
   customWords?: string[];
   onlyCustomWords?: boolean;
@@ -57,6 +58,7 @@ export interface Room {
   maxPlayers: number;
   totalRounds: number;
   turnDuration: number; // seconds
+  maxClues?: number; // number of clues/hints: 3, 4, 5, 6
   selectedCategories?: string[];
   customWords?: string[];
   onlyCustomWords?: boolean;
@@ -221,6 +223,7 @@ export interface ServerToClientEvents {
     drawerId: string;
     drawerName: string;
     wordHint: string;
+    word?: string; // sent to drawer so they know what to draw
     turnEndTime: number;
     roundNumber: number;
   }) => void;

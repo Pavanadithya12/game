@@ -4,7 +4,11 @@ import { getSocket } from '../hooks/useSocket';
 import { GamePhase } from '../types';
 import { Send, CheckCircle2 } from 'lucide-react';
 
-export default function QuickGuessBar() {
+interface QuickGuessBarProps {
+  onFocusChange?: (focused: boolean) => void;
+}
+
+export default function QuickGuessBar({ onFocusChange }: QuickGuessBarProps) {
   const [guess, setGuess] = useState('');
   const store = useGameStore();
   const socket = getSocket();
@@ -28,7 +32,7 @@ export default function QuickGuessBar() {
   };
 
   return (
-    <div className="w-full bg-surface/95 backdrop-blur-md rounded-2xl border border-slate-800 p-2 shadow-dark-card transition-all">
+    <div className="w-full bg-surface/95 backdrop-blur-md rounded-2xl border border-slate-800 p-1.5 sm:p-2 shadow-dark-card transition-all shrink-0">
       {hasGuessedCorrectly ? (
         <div className="flex items-center justify-center gap-2 py-2 px-4 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-400 font-bold text-xs sm:text-sm animate-fadeIn text-center">
           <CheckCircle2 size={16} className="shrink-0" />
@@ -40,6 +44,8 @@ export default function QuickGuessBar() {
             type="text"
             value={guess}
             onChange={(e) => setGuess(e.target.value)}
+            onFocus={() => onFocusChange?.(true)}
+            onBlur={() => setTimeout(() => onFocusChange?.(false), 200)}
             placeholder="Type your guess here (e.g. apple, car)..."
             autoComplete="off"
             autoCorrect="off"

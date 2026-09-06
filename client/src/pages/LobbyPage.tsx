@@ -8,9 +8,16 @@ import ChatPanel from '../components/ChatPanel';
 const DRAW_TIMES = [30, 45, 60, 70, 80, 90, 100, 120];
 const ROUNDS_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 const PLAYER_LIMITS = [2, 4, 6, 8, 10, 12, 16];
+const CLUES_OPTIONS = [3, 4, 5, 6];
 
 const CATEGORIES = [
   { id: 'All', label: '🌟 All Categories' },
+  { id: 'Daily Life', label: '🏠 Daily Life & Home' },
+  { id: 'Kitchen', label: '🍳 Kitchen & Dining' },
+  { id: 'Fashion', label: '👕 Clothes & Accessories' },
+  { id: 'School & Office', label: '🎒 School & Work' },
+  { id: 'City & Places', label: '🏙️ City & Places' },
+  { id: 'Jobs', label: '💼 Jobs & Professions' },
   { id: 'Maps', label: '🗺️ Maps & World' },
   { id: 'Fruits', label: '🍓 Fruits' },
   { id: 'Vegetables', label: '🥦 Vegetables' },
@@ -21,6 +28,7 @@ const CATEGORIES = [
   { id: 'Food', label: '🍕 Food & Snacks' },
   { id: 'Sci-Fi', label: '🚀 Sci-Fi & Tech' },
   { id: 'Actions', label: '🕺 Funny Actions' },
+  { id: 'Objects', label: '📦 Everyday Tools' },
 ];
 
 export default function LobbyPage() {
@@ -313,6 +321,34 @@ export default function LobbyPage() {
                       }`}
                     >
                       {limit}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. Number of Clues (Hints) */}
+              <div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-cyan-400" /> Clues / Hints (4, 5, or 6)
+                  </label>
+                  <span className="text-sm font-black text-cyan-400 font-mono bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/20">
+                    {store.room.maxClues || 4} Clues
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {CLUES_OPTIONS.map((clue) => (
+                    <button
+                      key={clue}
+                      disabled={!isHost}
+                      onClick={() => handleUpdateSettings({ maxClues: clue })}
+                      className={`py-2 rounded-xl text-xs font-bold font-mono transition-all border ${
+                        (store.room!.maxClues || 4) === clue
+                          ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-neon-cyan font-black scale-105'
+                          : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-800 disabled:opacity-60'
+                      }`}
+                    >
+                      {clue} Clues
                     </button>
                   ))}
                 </div>

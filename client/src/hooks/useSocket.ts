@@ -121,6 +121,11 @@ export function useSocket() {
     socket.on('turnStarted', (data) => {
       store.setCurrentDrawer(data.drawerId);
       store.setWordHint(data.wordHint);
+      if (data.word) {
+        store.setCurrentWord(data.word);
+      } else {
+        store.setCurrentWord(null);
+      }
       store.setTimeLeft(Math.floor((data.turnEndTime - Date.now()) / 1000));
       store.setPhase('drawing' as any);
       store.setWordChoices(null);
@@ -137,6 +142,7 @@ export function useSocket() {
       store.setTurnScores(data.scores);
       store.setPhase('round_end' as any);
       store.setWordHint(data.word);
+      store.setCurrentWord(null);
     });
 
     socket.on('roundEnded', (summary) => {

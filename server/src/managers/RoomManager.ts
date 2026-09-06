@@ -59,6 +59,9 @@ export class RoomManager {
     if (settings.turnDuration !== undefined && [30, 45, 60, 70, 80, 90, 100, 120].includes(settings.turnDuration)) {
       state.room.turnDuration = settings.turnDuration;
     }
+    if (settings.maxClues !== undefined && [3, 4, 5, 6].includes(settings.maxClues)) {
+      state.room.maxClues = settings.maxClues;
+    }
     if (settings.selectedCategories !== undefined) {
       state.room.selectedCategories = settings.selectedCategories;
     }
@@ -125,6 +128,7 @@ export class RoomManager {
       maxPlayers: 8,
       totalRounds: 3,
       turnDuration: 80, // Default 80s like Skribbl
+      maxClues: 4, // Default 4 clues/hints
       selectedCategories: ['All'],
       players: [host],
       createdAt: new Date().toISOString()
@@ -190,6 +194,21 @@ export class RoomManager {
         state.room.hostId = state.room.players[0].id;
         newHostId = state.room.hostId;
       }
+
+      if (state.game) {
+        // Remove disconnected player from draw order
+        state.game.drawOrder = state.game.drawOrder.filter(id => id !== socketId);
+        
+        if (state.room.players.length < 2) {
+          // Less than 2 players remain
+          this.endGame(roomId);
+        } else if (state.game.currentDrawerId === socketId) {
+          // Current drawer left - immediately advance to next player!
+          this.clearTimers(roomId);
+          this.startNextTurn(roomId);
+        }
+      }
+
       return { room: state.room, player, newHostId, isDeleted: false };
     }
   }
@@ -342,7 +361,7 @@ export class RoomManager {
     console.log(`[pickWord] Sending ${words.length} words to drawer ${drawerId} (Round ${game.currentRound}/${game.totalRounds}):`, words.map(w => w.word));
     this.io.to(drawerId).emit('pickWord', words);
 
-    // Auto-pick fallback after 15 seconds if drawer doesn't choose
+    // Auto-pick fallback after 10 seconds if drawer doesn't choose
     state.turnTimer = setTimeout(() => {
       if (state.game && state.game.phase === GamePhase.PICKING_WORD && state.game.currentDrawerId === drawerId) {
         console.log(`[auto-pick] Drawer ${drawerId} idle, auto-picking "${words[0].word}"`);
@@ -352,7 +371,7 @@ export class RoomManager {
           console.error('[auto-pick error]', err);
         }
       }
-    }, 15000);
+    }, 10000);
   }
 
   public selectWord(socketId: string, word: string) {
@@ -383,10 +402,21 @@ export class RoomManager {
 
     const drawerName = state.room.players.find(p => p.id === socketId)?.username || 'Unknown';
 
+    // Broadcast hint to everyone
     this.io.to(roomId).emit('turnStarted', {
       drawerId: socketId,
       drawerName,
       wordHint: game.wordHint,
+      turnEndTime: game.turnEndTime,
+      roundNumber: game.currentRound
+    });
+
+    // Send actual chosen word directly to drawer so it can be displayed at top right corner!
+    this.io.to(socketId).emit('turnStarted', {
+      drawerId: socketId,
+      drawerName,
+      wordHint: game.wordHint,
+      word: game.currentWord,
       turnEndTime: game.turnEndTime,
       roundNumber: game.currentRound
     });
@@ -407,20 +437,25 @@ export class RoomManager {
       this.endTurn(roomId);
     }, durationLeft);
 
+    // Calculate clue reveal seconds based on host maxClues (3, 4, 5, or 6 clues)
+    const cluesCount = state.room.maxClues || 4;
+    const clueTimes = new Set<number>();
+    for (let c = 1; c <= cluesCount; c++) {
+      const clueSec = Math.floor(state.room.turnDuration * (1 - c / (cluesCount + 1)));
+      if (clueSec > 2) {
+        clueTimes.add(clueSec);
+      }
+    }
+
     let secLeft = durationSec;
     state.countdownTimer = setInterval(() => {
       secLeft--;
       this.io.to(roomId).emit('timerUpdate', { timeLeft: secLeft });
       
-      // Hint logic
-      if (game.currentWord) {
-        if (secLeft === Math.floor(state.room.turnDuration / 2)) {
-          this.revealLetter(game);
-          this.io.to(roomId).emit('wordHintUpdated', { wordHint: game.wordHint });
-        } else if (secLeft === Math.floor(state.room.turnDuration / 4)) {
-          this.revealLetter(game);
-          this.io.to(roomId).emit('wordHintUpdated', { wordHint: game.wordHint });
-        }
+      // Hint logic: progressively reveal letters at configured intervals
+      if (game.currentWord && clueTimes.has(secLeft)) {
+        this.revealLetter(game);
+        this.io.to(roomId).emit('wordHintUpdated', { wordHint: game.wordHint });
       }
       
       if (secLeft <= 0 && state.countdownTimer) {
@@ -435,7 +470,8 @@ export class RoomManager {
     for (let i = 0; i < game.wordHint.length; i++) {
       if (game.wordHint[i] === '_') hiddenIndices.push(i);
     }
-    if (hiddenIndices.length === 0) return;
+    // Always keep at least 1 letter hidden so word isn't completely given away
+    if (hiddenIndices.length <= 1) return;
     const idx = hiddenIndices[Math.floor(Math.random() * hiddenIndices.length)];
     const arr = game.wordHint.split('');
     arr[idx] = game.currentWord[idx];
@@ -561,13 +597,15 @@ export class RoomManager {
 
     const isGameOver = game.currentRound > game.totalRounds;
 
-    // 5-second live countdown between turns & rounds
-    let secondsLeft = 5;
+    // 3-second snappy countdown between turns & rounds
+    let secondsLeft = 3;
+    const nextDrawerId = game.drawOrder[game.drawOrderIndex];
+    const nextPlayer = state.room.players.find(p => p.id === nextDrawerId);
     const countdownMessage = isGameOver
       ? 'Match finished! Showing winner...'
       : isRoundComplete
         ? `Round ${game.currentRound - 1} complete! Starting Round ${game.currentRound} of ${game.totalRounds}...`
-        : 'Next turn starting...';
+        : `Next up: ${nextPlayer?.username || 'Next player'} is drawing!`;
 
     this.io.to(roomId).emit('roundCountdown', { secondsLeft, message: countdownMessage });
 

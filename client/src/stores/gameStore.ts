@@ -32,6 +32,7 @@ export interface GameState {
   phase: GamePhase;
   currentDrawerId: string | null;
   wordHint: string;
+  currentWord: string | null;
   timeLeft: number;
   wordChoices: any[] | null;
   
@@ -66,6 +67,7 @@ export interface GameState {
   setPhase: (phase: GamePhase) => void;
   setCurrentDrawer: (id: string | null) => void;
   setWordHint: (hint: string) => void;
+  setCurrentWord: (word: string | null) => void;
   setTimeLeft: (time: number) => void;
   setWordChoices: (choices: any[] | null) => void;
   addStroke: (stroke: Stroke) => void;
@@ -96,6 +98,7 @@ export const useGameStore = create<GameState>((set) => ({
   phase: GamePhase.WAITING,
   currentDrawerId: null,
   wordHint: '',
+  currentWord: null,
   timeLeft: 0,
   wordChoices: null,
   
@@ -130,6 +133,7 @@ export const useGameStore = create<GameState>((set) => ({
   setPhase: (phase) => set({ phase }),
   setCurrentDrawer: (id) => set({ currentDrawerId: id }),
   setWordHint: (hint) => set({ wordHint: hint }),
+  setCurrentWord: (word) => set({ currentWord: word }),
   setTimeLeft: (time) => set({ timeLeft: time }),
   setWordChoices: (choices) => set({ wordChoices: choices }),
   

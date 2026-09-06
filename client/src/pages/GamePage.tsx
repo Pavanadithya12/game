@@ -10,13 +10,14 @@ import Timer from '../components/Timer';
 import WordSelector from '../components/WordSelector';
 import Leaderboard from '../components/Leaderboard';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Clock, Layers, MessageSquare, Users } from 'lucide-react';
+import { Clock, Layers, MessageSquare, Users, Sparkles, Pencil } from 'lucide-react';
 
 export default function GamePage() {
   const store = useGameStore();
   const navigate = useNavigate();
   const { roomId } = useParams<{ roomId: string }>();
   const [mobileTab, setMobileTab] = useState<'chat' | 'players'>('chat');
+  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
     if (!store.game || !store.room) {
@@ -45,39 +46,50 @@ export default function GamePage() {
   return (
     <div className="h-[100dvh] max-h-[100dvh] bg-background text-slate-100 flex flex-col overflow-hidden select-none">
       {/* Top Header Bar */}
-      <div className="h-14 sm:h-16 bg-surface/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-3 sm:px-6 shrink-0 z-10 shadow-dark-card">
+      <div className="h-14 sm:h-16 bg-surface/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-3 sm:px-6 shrink-0 z-10 shadow-dark-card gap-2">
         {/* Brand & Round Badge */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-black text-white shadow-neon-cyan text-sm sm:text-base">
             M
           </div>
-          <span className="font-black text-base sm:text-lg tracking-wider text-white hidden sm:inline">MawaBro</span>
+          <span className="font-black text-base sm:text-lg tracking-wider text-white hidden md:inline">MawaBro</span>
           <span className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold font-mono text-cyan-300 border border-cyan-500/30 bg-cyan-500/10 px-2 sm:px-2.5 py-1 rounded-xl shadow-sm">
             <Layers size={12} /> R{store.game.currentRound}/{store.game.totalRounds}
           </span>
         </div>
         
         {/* Center Hint / Word Display */}
-        <div className="flex-1 flex justify-center px-2">
+        <div className="flex-1 flex justify-center px-1 min-w-0">
           {store.phase === GamePhase.DRAWING && (
-            <div className="bg-slate-950/90 border border-slate-800 px-3 sm:px-5 py-1 sm:py-1.5 rounded-2xl text-center shadow-inner flex flex-col items-center">
-              <span className="text-[9px] sm:text-[10px] font-bold text-cyan-400 uppercase tracking-widest leading-none mb-0.5 sm:mb-1">
-                {isDrawer ? 'Your Word to Draw' : 'Guess the Word'}
+            <div className="bg-slate-950/90 border border-slate-800 px-3 sm:px-5 py-1 rounded-2xl text-center shadow-inner flex flex-col items-center max-w-full truncate">
+              <span className="text-[9px] sm:text-[10px] font-bold text-cyan-400 uppercase tracking-widest leading-none mb-0.5">
+                {isDrawer ? '🎨 You are Drawing' : 'Guess the Word'}
               </span>
-              <span className="font-mono text-base sm:text-2xl font-black tracking-[0.25em] sm:tracking-[0.35em] text-white">
-                {store.wordHint}
+              <span className="font-mono text-sm sm:text-2xl font-black tracking-[0.2em] sm:tracking-[0.35em] text-white truncate">
+                {isDrawer && store.currentWord ? store.currentWord.toUpperCase() : store.wordHint}
               </span>
             </div>
           )}
           {store.phase === GamePhase.PICKING_WORD && (
-            <div className="text-xs sm:text-base font-bold text-slate-300 animate-pulse bg-slate-950/80 border border-slate-800 px-3 sm:px-4 py-1 sm:py-1.5 rounded-xl text-center">
+            <div className="text-xs sm:text-sm font-bold text-slate-300 animate-pulse bg-slate-950/80 border border-slate-800 px-3 sm:px-4 py-1.5 rounded-xl text-center truncate">
               {isDrawer ? '🎨 Choose a word to draw!' : `⏳ Waiting for ${drawerName} to pick...`}
             </div>
           )}
         </div>
 
-        {/* Timer */}
-        <div>
+        {/* Top Right Corner: Drawer Word Display & Timer */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Drawer word badge at top right corner */}
+          {isDrawer && store.currentWord && store.phase === GamePhase.DRAWING && (
+            <div className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-400/40 px-3 py-1.5 rounded-xl shadow-neon-cyan animate-pulse">
+              <Pencil size={14} className="text-emerald-400" />
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-[8px] uppercase tracking-widest font-bold text-emerald-400">Word</span>
+                <span className="text-xs sm:text-sm font-black text-white capitalize">{store.currentWord}</span>
+              </div>
+            </div>
+          )}
+
           <Timer />
         </div>
       </div>
@@ -87,8 +99,10 @@ export default function GamePage() {
         
         {/* Left Side: Canvas & Toolbar / QuickGuess */}
         <div className="flex-1 flex flex-col min-w-0 p-2 sm:p-3 md:p-4 gap-2 sm:gap-3 overflow-hidden">
-          {/* Canvas Wrapper */}
-          <div className="flex-1 min-h-0 bg-slate-950 rounded-2xl shadow-dark-card overflow-hidden relative border border-slate-800/80 flex items-center justify-center p-1 sm:p-2">
+          {/* Canvas Wrapper - dynamically responsive for mobile typing */}
+          <div className={`min-h-0 bg-slate-950 rounded-2xl shadow-dark-card overflow-hidden relative border border-slate-800/80 flex items-center justify-center p-1 sm:p-2 transition-all ${
+            isTyping ? 'h-[30vh] max-h-[200px] shrink-0' : 'flex-1'
+          }`}>
             <Canvas />
             
             {/* Overlay for Turn Transitions & Waiting */}
@@ -101,20 +115,20 @@ export default function GamePage() {
                 {store.phase === GamePhase.ROUND_END && (
                   <div className="text-center animate-slide-up bg-surface/95 border border-slate-800 p-5 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full">
                     <h2 className="text-2xl sm:text-3xl font-black text-cyan-400 mb-1">Turn Ended!</h2>
-                    <p className="text-slate-400 text-xs sm:text-sm mb-4">
+                    <p className="text-slate-400 text-xs sm:text-sm mb-3">
                       The word was: <span className="font-mono font-black text-white text-lg sm:text-xl tracking-wider capitalize">{store.wordHint}</span>
                     </p>
 
                     {/* Countdown to next turn/round */}
                     {store.countdownInfo && (
-                      <div className="mb-4 inline-flex items-center gap-2 text-cyan-300 font-mono font-bold text-xs bg-cyan-500/10 py-1.5 px-4 rounded-full border border-cyan-500/25 animate-pulse">
+                      <div className="mb-3 inline-flex items-center gap-2 text-cyan-300 font-mono font-bold text-xs bg-cyan-500/10 py-1.5 px-4 rounded-full border border-cyan-500/25 animate-pulse">
                         <Clock size={14} />
                         <span>{store.countdownInfo.message} ({store.countdownInfo.secondsLeft}s)</span>
                       </div>
                     )}
                     
                     {store.turnScores && (
-                      <div className="space-y-2 max-h-40 sm:max-h-48 overflow-y-auto pr-1">
+                      <div className="space-y-1.5 max-h-36 sm:max-h-44 overflow-y-auto pr-1">
                         {store.turnScores.map((score, index) => (
                           <div key={score.playerId} className="flex justify-between items-center bg-slate-900/80 p-2 sm:p-2.5 rounded-xl border border-slate-800 text-xs sm:text-sm">
                             <span className="font-bold flex items-center gap-2">
@@ -137,12 +151,14 @@ export default function GamePage() {
             {isDrawer ? (
               <Toolbar />
             ) : store.phase === GamePhase.DRAWING ? (
-              <QuickGuessBar />
+              <QuickGuessBar onFocusChange={setIsTyping} />
             ) : null}
           </div>
 
-          {/* Mobile Tabbed View (Chat / Players) below Canvas - only on mobile */}
-          <div className="md:hidden flex flex-col h-44 sm:h-52 shrink-0 border-t border-slate-800/80 pt-2 min-h-0">
+          {/* Mobile Tabbed View (Chat / Players) below Canvas - auto-hides when typing to keep canvas 100% visible! */}
+          <div className={`md:hidden flex flex-col h-44 sm:h-52 shrink-0 border-t border-slate-800/80 pt-2 min-h-0 transition-all ${
+            isTyping ? 'hidden' : 'flex'
+          }`}>
             <div className="flex items-center gap-2 mb-2 shrink-0">
               <button
                 onClick={() => setMobileTab('chat')}
