@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mawabro_postgres
+    environment:
+      POSTGRES_DB: mawabro
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - mawabro_pgdata:/var/lib/postgresql/data
+    networks:
+      - mawabro_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mawabro"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: mawabro_server
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/mawabro
+      - PORT=3001
+      - NODE_ENV=development
+      - CLIENT_URL=http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mawabro_network
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: mawabro_client
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_SERVER_URL=http://localhost:3001
+    depends_on:
+      - server
+    networks:
+      - mawabro_network
+
+volumes:
+  mawabro_pgdata:
+
+networks:
+  mawabro_network:
+    driver: bridge
