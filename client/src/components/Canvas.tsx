@@ -136,6 +136,9 @@ export default function Canvas() {
   };
 
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e && e.cancelable) {
+      e.preventDefault();
+    }
     if (!isDrawer) return;
     const point = getCoordinates(e);
     if (!point) return;
@@ -159,6 +162,9 @@ export default function Canvas() {
   };
 
   const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e && e.cancelable) {
+      e.preventDefault();
+    }
     if (!isDrawing || !isDrawer || !lastPointRef.current) return;
     const currentPoint = getCoordinates(e);
     if (!currentPoint) return;
