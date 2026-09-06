@@ -9,6 +9,14 @@
     --color-accent: #06b6d4;
     --color-primary: #3b82f6;
   }
+
+  html,
+  body {
+    height: 100%;
+    min-height: 100%;
+    min-height: 100dvh;
+    overscroll-behavior: none;
+  }
 }
 
 body {

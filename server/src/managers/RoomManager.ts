@@ -243,7 +243,7 @@ export class RoomManager {
     return game;
   }
 
-  public async getRandomWords(count = 3, roomId?: string): Promise<WordChoice[]> {
+  public async getRandomWords(count = 4, roomId?: string): Promise<WordChoice[]> {
     let pool = [...WORDS_DATASET];
 
     if (roomId) {
@@ -276,16 +276,18 @@ export class RoomManager {
       }
     }
 
-    const easy = pool.filter(w => w.difficulty === 1);
-    const med = pool.filter(w => w.difficulty === 2);
-    const hard = pool.filter(w => w.difficulty === 3);
+    const l1 = pool.filter(w => w.difficulty === 1);
+    const l2 = pool.filter(w => w.difficulty === 2);
+    const l3 = pool.filter(w => w.difficulty === 3);
+    const l4 = pool.filter(w => w.difficulty === 4);
 
     const pickRandom = (arr: WordChoice[]) => arr[Math.floor(Math.random() * arr.length)];
 
     const choices: WordChoice[] = [];
-    if (easy.length > 0) choices.push(pickRandom(easy));
-    if (med.length > 0) choices.push(pickRandom(med));
-    if (hard.length > 0) choices.push(pickRandom(hard));
+    if (l1.length > 0) choices.push(pickRandom(l1));
+    if (l2.length > 0) choices.push(pickRandom(l2));
+    if (l3.length > 0) choices.push(pickRandom(l3));
+    if (l4.length > 0) choices.push(pickRandom(l4));
 
     while (choices.length < count && pool.length > 0) {
       const next = pickRandom(pool);
@@ -336,7 +338,7 @@ export class RoomManager {
     this.io.to(roomId).emit('gameStarted', { ...game });
 
     // Fetch and send word choices to drawer immediately
-    const words = await this.getRandomWords(3, roomId);
+    const words = await this.getRandomWords(4, roomId);
     console.log(`[pickWord] Sending ${words.length} words to drawer ${drawerId} (Round ${game.currentRound}/${game.totalRounds}):`, words.map(w => w.word));
     this.io.to(drawerId).emit('pickWord', words);
 

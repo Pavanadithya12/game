@@ -10,7 +10,7 @@ interface ChatPanelProps {
 
 export default function ChatPanel({ inGame = false }: ChatPanelProps) {
   const [text, setText] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const listContainerRef = useRef<HTMLDivElement | null>(null);
 
   const store = useGameStore();
   const socket = getSocket();
@@ -23,7 +23,10 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
     store.turnScores?.some((s) => s.playerId === store.playerId && s.pointsEarned > 0);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only scroll the internal message container, NEVER scroll the outer window or canvas!
+    if (listContainerRef.current) {
+      listContainerRef.current.scrollTop = listContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -45,9 +48,12 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-surface/90 backdrop-blur-md rounded-2xl border border-slate-800 shadow-dark-card overflow-hidden">
+    <div className="flex-1 flex flex-col h-full min-h-0 bg-surface/90 backdrop-blur-md rounded-2xl border border-slate-800 shadow-dark-card overflow-hidden">
       {/* Message List */}
-      <div className="flex-1 p-3 overflow-y-auto space-y-2 text-xs">
+      <div 
+        ref={listContainerRef} 
+        className="flex-1 min-h-0 p-3 overflow-y-auto space-y-2 text-xs overscroll-contain"
+      >
         {store.messages.length === 0 ? (
           <div className="text-slate-500 text-xs italic text-center py-6">
             {inGame ? 'Type your guess in the box below!' : 'Welcome to the lobby!'}
@@ -97,11 +103,10 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
             );
           })
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-2 border-t border-slate-800 bg-slate-900/70 flex gap-2">
+      <form onSubmit={handleSubmit} className="p-2 border-t border-slate-800 bg-slate-900/70 flex gap-2 shrink-0">
         <input
           type="text"
           value={text}
