@@ -4,11 +4,13 @@ import { useGameStore } from '../stores/gameStore';
 import { ServerToClientEvents, ClientToServerEvents } from '../types';
 import { useNavigate } from 'react-router-dom';
 
-// Auto-detect: if served from Express (port 3001), connect to same origin
-// If Vite dev server (port 5173), connect to localhost:3001
+const LIVE_BACKEND_URL = 'https://11f74b1bd638db.lhr.life';
+
 const url = import.meta.env.PROD
-  ? window.location.origin
+  ? (window.location.origin.includes('vercel.app') ? LIVE_BACKEND_URL : window.location.origin)
   : 'http://localhost:3001';
+
+console.log('[Socket] Connecting to backend:', url);
 
 console.log('[Socket] Connecting to:', url);
 
