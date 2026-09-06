@@ -9,7 +9,7 @@ import Timer from '../components/Timer';
 import WordSelector from '../components/WordSelector';
 import Leaderboard from '../components/Leaderboard';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Brush } from 'lucide-react';
+import { Brush, Clock, Layers } from 'lucide-react';
 
 export default function GamePage() {
   const store = useGameStore();
@@ -18,7 +18,6 @@ export default function GamePage() {
 
   useEffect(() => {
     if (!store.game || !store.room) {
-      // Trying to access game page without active game state
       navigate('/');
     }
   }, [store.game, store.room, navigate]);
@@ -39,97 +38,115 @@ export default function GamePage() {
   const drawerPlayer = store.room.players.find(p => p.id === effectiveDrawerId);
   const drawerName = drawerPlayer ? drawerPlayer.username : 'drawer';
 
-  const showTurnEnd = store.phase === GamePhase.ROUND_END;
   const showGameEnd = store.phase === GamePhase.GAME_END;
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
-      {/* Top Bar */}
-      <div className="h-16 bg-surface border-b border-gray-700 flex items-center justify-between px-4 md:px-8 shrink-0 z-10 shadow-md">
-        <div className="flex items-center gap-2">
-          <Brush className="text-accent" />
-          <span className="font-black text-xl tracking-wider text-white">MawaBro</span>
-          <span className="ml-4 text-sm font-medium text-gray-400 border border-gray-700 bg-gray-800 px-2 py-1 rounded">
-            Round {store.game.currentRound}/{store.game.totalRounds}
+    <div className="h-screen bg-background text-slate-100 flex flex-col overflow-hidden select-none">
+      {/* Top Header Bar */}
+      <div className="h-16 bg-surface/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-4 md:px-6 shrink-0 z-10 shadow-dark-card">
+        {/* Brand & Round Badge */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-black text-white shadow-neon-cyan text-base">
+            M
+          </div>
+          <span className="font-black text-lg tracking-wider text-white hidden sm:inline">MawaBro</span>
+          <span className="flex items-center gap-1.5 text-xs font-bold font-mono text-cyan-300 border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 rounded-xl shadow-sm">
+            <Layers size={13} /> Round {store.game.currentRound}/{store.game.totalRounds}
           </span>
         </div>
         
-        {/* Center Hint/Word */}
-        <div className="flex-1 flex justify-center">
+        {/* Center Hint / Word Display */}
+        <div className="flex-1 flex justify-center px-2">
           {store.phase === GamePhase.DRAWING && (
-            <div className="bg-gray-900 border border-gray-700 px-6 py-2 rounded-xl text-center shadow-inner">
-              <span className="text-sm text-gray-400 uppercase tracking-widest block mb-1">
-                {isDrawer ? 'Draw this' : 'Guess the word'}
+            <div className="bg-slate-950/80 border border-slate-800 px-5 py-1.5 rounded-2xl text-center shadow-inner flex flex-col items-center">
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest leading-none mb-1">
+                {isDrawer ? 'Your Word to Draw' : 'Guess the Word'}
               </span>
-              <span className="font-mono text-2xl font-bold tracking-[0.3em] text-white">
+              <span className="font-mono text-xl sm:text-2xl font-black tracking-[0.35em] text-white">
                 {store.wordHint}
               </span>
             </div>
           )}
           {store.phase === GamePhase.PICKING_WORD && (
-            <div className="text-lg font-bold text-gray-300 animate-pulse">
-              {isDrawer ? 'Choose a word to draw!' : `Waiting for ${drawerName} to pick a word...`}
+            <div className="text-sm sm:text-base font-bold text-slate-300 animate-pulse bg-slate-950/60 border border-slate-800 px-4 py-1.5 rounded-xl">
+              {isDrawer ? '🎨 Choose a word to draw!' : `⏳ Waiting for ${drawerName} to pick a word...`}
             </div>
           )}
         </div>
 
+        {/* Timer */}
         <div>
           <Timer />
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Game Screen */}
       <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative">
         
-        {/* Left Side: Canvas & Toolbar */}
-        <div className="flex-1 flex flex-col min-w-0 p-4">
-          <div className="flex-1 bg-white rounded-2xl shadow-xl overflow-hidden relative border border-gray-700 group flex items-center justify-center">
+        {/* Left Side: Canvas & Floating Toolbar */}
+        <div className="flex-1 flex flex-col min-w-0 p-3 md:p-4 gap-3">
+          <div className="flex-1 bg-slate-950 rounded-2xl shadow-dark-card overflow-hidden relative border border-slate-800/80 flex items-center justify-center p-2">
             <Canvas />
             
-            {/* Overlay for non-drawing phases */}
+            {/* Overlay for Turn Transitions & Waiting */}
             {store.phase !== GamePhase.DRAWING && !showGameEnd && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center">
+              <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-20 flex items-center justify-center p-4 animate-fadeIn">
                 {store.phase === GamePhase.WAITING && (
-                  <h2 className="text-3xl font-bold text-white animate-pulse">Waiting for next turn...</h2>
+                  <h2 className="text-2xl font-black text-white animate-pulse">Waiting for next turn...</h2>
                 )}
-                {store.phase === GamePhase.ROUND_END && store.turnScores && (
-                  <div className="text-center animate-slide-up bg-surface p-8 rounded-2xl border border-gray-700 shadow-2xl">
-                    <h2 className="text-4xl font-black text-accent mb-2">Turn Ended!</h2>
-                    <p className="text-xl text-gray-300 mb-6">The word was: <span className="font-mono font-bold text-white text-2xl tracking-widest">{store.wordHint}</span></p>
+                
+                {store.phase === GamePhase.ROUND_END && (
+                  <div className="text-center animate-slide-up bg-surface/95 border border-slate-800 p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full">
+                    <h2 className="text-3xl font-black text-cyan-400 mb-1">Turn Ended!</h2>
+                    <p className="text-slate-400 text-sm mb-4">
+                      The word was: <span className="font-mono font-black text-white text-xl tracking-wider capitalize">{store.wordHint}</span>
+                    </p>
+
+                    {/* Countdown to next turn/round */}
+                    {store.countdownInfo && (
+                      <div className="mb-4 inline-flex items-center gap-2 text-cyan-300 font-mono font-bold text-xs bg-cyan-500/10 py-1.5 px-4 rounded-full border border-cyan-500/25 animate-pulse">
+                        <Clock size={14} />
+                        <span>{store.countdownInfo.message} ({store.countdownInfo.secondsLeft}s)</span>
+                      </div>
+                    )}
                     
-                    <div className="max-w-md mx-auto space-y-3">
-                      {store.turnScores.map((score, index) => (
-                        <div key={score.playerId} className="flex justify-between items-center bg-background p-3 rounded-xl border border-gray-700">
-                          <span className="font-bold flex items-center gap-2">
-                            <span className="text-gray-500">#{index + 1}</span> {score.playerName}
-                          </span>
-                          <span className="font-mono font-bold text-green-400">+{score.pointsEarned}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {store.turnScores && (
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {store.turnScores.map((score, index) => (
+                          <div key={score.playerId} className="flex justify-between items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-sm">
+                            <span className="font-bold flex items-center gap-2">
+                              <span className="text-slate-500 text-xs">#{index + 1}</span> 
+                              <span>{score.playerName}</span>
+                            </span>
+                            <span className="font-mono font-bold text-emerald-400">+{score.pointsEarned} pts</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             )}
           </div>
           
-          <div className="mt-4 shrink-0">
+          {/* Floating Dock Toolbar */}
+          <div className="shrink-0">
             <Toolbar />
           </div>
         </div>
 
-        {/* Right Side: Players & Chat */}
-        <div className="w-full md:w-80 lg:w-96 flex flex-col gap-4 p-4 border-t md:border-t-0 md:border-l border-gray-800 bg-surface/50 overflow-hidden">
-          <div className="h-1/3 min-h-[200px] flex flex-col">
+        {/* Right Side: Players List & Chat Panel */}
+        <div className="w-full md:w-80 lg:w-96 flex flex-col gap-3 p-3 md:p-4 border-t md:border-t-0 md:border-l border-slate-800/80 bg-surface/60 overflow-hidden">
+          <div className="h-2/5 min-h-[180px] flex flex-col">
             <PlayerList />
           </div>
-          <div className="flex-1 min-h-[300px] flex flex-col">
+          <div className="flex-1 min-h-[260px] flex flex-col">
             <ChatPanel inGame={true} />
           </div>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Popups & Modals */}
       {showWordSelector && <WordSelector />}
       {showGameEnd && <Leaderboard />}
     </div>

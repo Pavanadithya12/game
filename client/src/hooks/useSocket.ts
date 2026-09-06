@@ -124,6 +124,7 @@ export function useSocket() {
       store.setTimeLeft(Math.floor((data.turnEndTime - Date.now()) / 1000));
       store.setPhase('drawing' as any);
       store.setWordChoices(null);
+      store.setCountdownInfo(null);
       store.clearStrokes();
       store.setTurnScores(null);
     });
@@ -142,9 +143,14 @@ export function useSocket() {
       store.setRoundSummary(summary);
     });
 
+    socket.on('roundCountdown', (data) => {
+      store.setCountdownInfo(data);
+    });
+
     socket.on('gameEnded', (data) => {
       store.setFinalResult(data);
       store.setPhase('game_end' as any);
+      store.setCountdownInfo(null);
     });
 
     socket.on('timerUpdate', (data) => {

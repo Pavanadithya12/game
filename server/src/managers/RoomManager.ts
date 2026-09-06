@@ -42,6 +42,54 @@ export class RoomManager {
     return this.rooms.get(roomId);
   }
 
+  public updateRoomSettings(socketId: string, settings: import('../types.js').RoomSettings): Room {
+    const roomId = this.playerToRoom.get(socketId);
+    if (!roomId) throw new Error('Not in a room');
+    const state = this.rooms.get(roomId);
+    if (!state) throw new Error('Room not found');
+    if (state.room.hostId !== socketId) throw new Error('Only host can change settings');
+    if (state.room.status === RoomStatus.PLAYING) throw new Error('Cannot change settings while game is in progress');
+
+    if (settings.maxPlayers !== undefined && settings.maxPlayers >= 2 && settings.maxPlayers <= 16) {
+      state.room.maxPlayers = settings.maxPlayers;
+    }
+    if (settings.totalRounds !== undefined && settings.totalRounds >= 2 && settings.totalRounds <= 10) {
+      state.room.totalRounds = settings.totalRounds;
+    }
+    if (settings.turnDuration !== undefined && [30, 45, 60, 70, 80, 90, 100, 120].includes(settings.turnDuration)) {
+      state.room.turnDuration = settings.turnDuration;
+    }
+    if (settings.selectedCategories !== undefined) {
+      state.room.selectedCategories = settings.selectedCategories;
+    }
+    if (settings.customWords !== undefined) {
+      state.room.customWords = settings.customWords.map(w => w.trim()).filter(w => w.length > 0);
+    }
+    if (settings.onlyCustomWords !== undefined) {
+      state.room.onlyCustomWords = settings.onlyCustomWords;
+    }
+
+    this.io.to(roomId).emit('roomUpdated', state.room);
+    return state.room;
+  }
+
+  public playAgain(socketId: string): Room {
+    const roomId = this.playerToRoom.get(socketId);
+    if (!roomId) throw new Error('Not in a room');
+    const state = this.rooms.get(roomId);
+    if (!state) throw new Error('Room not found');
+
+    this.clearTimers(roomId);
+    state.game = undefined;
+    state.room.status = RoomStatus.LOBBY;
+    for (const p of state.room.players) {
+      p.score = 0;
+    }
+
+    this.io.to(roomId).emit('roomUpdated', state.room);
+    return state.room;
+  }
+
   public listRooms(): RoomListItem[] {
     const list: RoomListItem[] = [];
     for (const [id, state] of this.rooms.entries()) {
@@ -76,7 +124,8 @@ export class RoomManager {
       status: RoomStatus.LOBBY,
       maxPlayers: 8,
       totalRounds: 3,
-      turnDuration: 60,
+      turnDuration: 80, // Default 80s like Skribbl
+      selectedCategories: ['All'],
       players: [host],
       createdAt: new Date().toISOString()
     };
@@ -194,27 +243,58 @@ export class RoomManager {
     return game;
   }
 
-  public async getRandomWords(count = 3): Promise<WordChoice[]> {
-    try {
-      const res = await pool.query('SELECT word, category, difficulty FROM words ORDER BY RANDOM() LIMIT $1', [count]);
-      if (res.rows && res.rows.length >= count) {
-        return res.rows;
+  public async getRandomWords(count = 3, roomId?: string): Promise<WordChoice[]> {
+    let pool = [...WORDS_DATASET];
+
+    if (roomId) {
+      const state = this.rooms.get(roomId);
+      if (state) {
+        // Handle custom words
+        if (state.room.customWords && state.room.customWords.length > 0) {
+          const customChoices: WordChoice[] = state.room.customWords.map(w => ({
+            word: w.toLowerCase(),
+            category: 'Custom',
+            difficulty: 2
+          }));
+
+          if (state.room.onlyCustomWords) {
+            pool = customChoices;
+          } else {
+            pool = [...pool, ...customChoices];
+          }
+        }
+
+        // Handle category selection
+        if (state.room.selectedCategories && state.room.selectedCategories.length > 0 && !state.room.selectedCategories.includes('All')) {
+          const filtered = pool.filter(w => 
+            state.room.selectedCategories!.some(cat => cat.toLowerCase() === w.category.toLowerCase())
+          );
+          if (filtered.length >= count) {
+            pool = filtered;
+          }
+        }
       }
-    } catch (err) {
-      // Use in-memory curated dataset
     }
 
-    const easy = WORDS_DATASET.filter(w => w.difficulty === 1);
-    const med = WORDS_DATASET.filter(w => w.difficulty === 2);
-    const hard = WORDS_DATASET.filter(w => w.difficulty === 3);
+    const easy = pool.filter(w => w.difficulty === 1);
+    const med = pool.filter(w => w.difficulty === 2);
+    const hard = pool.filter(w => w.difficulty === 3);
 
     const pickRandom = (arr: WordChoice[]) => arr[Math.floor(Math.random() * arr.length)];
 
-    const choices: WordChoice[] = [
-      pickRandom(easy),
-      pickRandom(med),
-      pickRandom(hard.length > 0 ? hard : med)
-    ];
+    const choices: WordChoice[] = [];
+    if (easy.length > 0) choices.push(pickRandom(easy));
+    if (med.length > 0) choices.push(pickRandom(med));
+    if (hard.length > 0) choices.push(pickRandom(hard));
+
+    while (choices.length < count && pool.length > 0) {
+      const next = pickRandom(pool);
+      if (!choices.some(c => c.word === next.word)) {
+        choices.push(next);
+      } else if (choices.length >= pool.length) {
+        break;
+      }
+    }
 
     return choices;
   }
@@ -227,20 +307,21 @@ export class RoomManager {
     state.guessedCorrectly.clear();
     const game = state.game;
     
+    if (game.currentRound > game.totalRounds) {
+      this.endGame(roomId);
+      return;
+    }
+
+    // Find the next connected player in draw order
     let drawerId = game.drawOrder[game.drawOrderIndex];
-    // Check if player is still connected, if not, skip
     let loops = 0;
     while (!state.room.players.find(p => p.id === drawerId) && loops < game.drawOrder.length) {
-      game.drawOrderIndex++;
-      if (game.drawOrderIndex >= game.drawOrder.length) {
-        game.drawOrderIndex = 0;
-        game.currentRound++;
-      }
+      game.drawOrderIndex = (game.drawOrderIndex + 1) % game.drawOrder.length;
       drawerId = game.drawOrder[game.drawOrderIndex];
       loops++;
     }
 
-    if (game.currentRound > game.totalRounds) {
+    if (!state.room.players.find(p => p.id === drawerId)) {
       this.endGame(roomId);
       return;
     }
@@ -248,12 +329,15 @@ export class RoomManager {
     game.currentDrawerId = drawerId;
     game.phase = GamePhase.PICKING_WORD;
     game.currentWord = null;
+    game.wordHint = '';
+    game.turnEndTime = null;
+
     // Broadcast the updated game state (phase change to PICKING_WORD)
     this.io.to(roomId).emit('gameStarted', { ...game });
 
     // Fetch and send word choices to drawer immediately
-    const words = await this.getRandomWords(3);
-    console.log(`[pickWord] Sending ${words.length} words to drawer ${drawerId}:`, words.map(w => w.word));
+    const words = await this.getRandomWords(3, roomId);
+    console.log(`[pickWord] Sending ${words.length} words to drawer ${drawerId} (Round ${game.currentRound}/${game.totalRounds}):`, words.map(w => w.word));
     this.io.to(drawerId).emit('pickWord', words);
 
     // Auto-pick fallback after 15 seconds if drawer doesn't choose
@@ -455,10 +539,11 @@ export class RoomManager {
       scores
     });
 
-    // Move to next player
+    // Advance draw order index
     game.drawOrderIndex++;
-    if (game.drawOrderIndex >= game.drawOrder.length) {
-      // Round end
+    const isRoundComplete = game.drawOrderIndex >= game.drawOrder.length;
+
+    if (isRoundComplete) {
       const summary: RoundSummary = {
         roundNumber: game.currentRound,
         word: game.currentWord || '',
@@ -472,9 +557,32 @@ export class RoomManager {
       game.currentRound++;
     }
 
-    setTimeout(() => {
-      this.startNextTurn(roomId);
-    }, 5000); // 5 sec break between turns
+    const isGameOver = game.currentRound > game.totalRounds;
+
+    // 5-second live countdown between turns & rounds
+    let secondsLeft = 5;
+    const countdownMessage = isGameOver
+      ? 'Match finished! Showing winner...'
+      : isRoundComplete
+        ? `Round ${game.currentRound - 1} complete! Starting Round ${game.currentRound} of ${game.totalRounds}...`
+        : 'Next turn starting...';
+
+    this.io.to(roomId).emit('roundCountdown', { secondsLeft, message: countdownMessage });
+
+    state.countdownTimer = setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft > 0) {
+        this.io.to(roomId).emit('roundCountdown', { secondsLeft, message: countdownMessage });
+      } else {
+        if (state.countdownTimer) clearInterval(state.countdownTimer);
+        state.countdownTimer = undefined;
+        if (isGameOver) {
+          this.endGame(roomId);
+        } else {
+          this.startNextTurn(roomId);
+        }
+      }
+    }, 1000);
   }
 
   private endGame(roomId: string) {

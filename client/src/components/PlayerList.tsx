@@ -15,13 +15,13 @@ export default function PlayerList() {
   });
 
   return (
-    <div className="flex-1 flex flex-col bg-surface rounded-2xl border border-gray-700 shadow-xl overflow-hidden">
-      <div className="p-3 border-b border-gray-700 bg-gray-800/50 flex items-center justify-between">
-        <h3 className="font-bold flex items-center gap-1.5 text-sm text-gray-200">
-          <Trophy size={16} className="text-yellow-400" /> Players
+    <div className="flex-1 flex flex-col bg-surface/90 backdrop-blur-md rounded-2xl border border-slate-800 shadow-dark-card overflow-hidden">
+      <div className="p-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
+        <h3 className="font-bold flex items-center gap-1.5 text-xs uppercase tracking-wider text-slate-300">
+          <Trophy size={14} className="text-amber-400" /> Leaderboard
         </h3>
-        <span className="text-xs text-gray-400 font-mono">
-          {store.room.players.length} online
+        <span className="text-[11px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
+          {store.room.players.length} Players
         </span>
       </div>
 
@@ -39,49 +39,49 @@ export default function PlayerList() {
               key={player.id}
               className={`flex items-center gap-2 p-2 rounded-xl transition-all border ${
                 isSelf
-                  ? 'border-accent/50 bg-accent/10'
-                  : 'border-gray-800 bg-background/60'
+                  ? 'border-cyan-500/40 bg-cyan-500/10'
+                  : 'border-slate-800/80 bg-slate-900/50 hover:border-slate-700'
               }`}
             >
               {/* Rank */}
-              <span className="text-xs font-mono font-bold text-gray-500 w-4 text-center">
+              <span className="text-xs font-mono font-black text-slate-500 w-4 text-center">
                 #{index + 1}
               </span>
 
               {/* Avatar */}
               <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shadow"
+                className="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black text-white shadow-sm ring-1 ring-white/10"
                 style={{ backgroundColor: player.avatarColor }}
               >
                 {player.username.charAt(0).toUpperCase()}
               </div>
 
-              {/* Username */}
+              {/* Username & Score */}
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold truncate flex items-center gap-1">
+                <div className="text-xs font-bold truncate flex items-center gap-1 text-slate-200">
                   <span>{player.username}</span>
-                  {isSelf && <span className="text-[10px] text-gray-400">(You)</span>}
+                  {isSelf && <span className="text-[10px] text-cyan-400 font-bold">(You)</span>}
                 </div>
-                <div className="text-xs font-mono text-gray-400">{score} pts</div>
+                <div className="text-[11px] font-mono font-bold text-slate-400">{score} pts</div>
               </div>
 
-              {/* Indicators: Drawing or Guessed */}
+              {/* State Icons */}
               <div className="flex items-center gap-1">
                 {isCurrentDrawer && (
                   <span
-                    className="flex items-center gap-1 text-[11px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-md font-medium"
+                    className="flex items-center gap-1 text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded-lg font-bold"
                     title="Drawing now"
                   >
-                    <Pencil size={12} className="animate-bounce" />
-                    <span className="hidden sm:inline">Draw</span>
+                    <Pencil size={11} className="animate-bounce" />
+                    <span>Draw</span>
                   </span>
                 )}
                 {hasGuessed && (
                   <span
-                    className="p-1 rounded-full bg-green-500/20 text-green-400"
+                    className="p-1 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400"
                     title="Guessed correctly"
                   >
-                    <Check size={14} />
+                    <Check size={12} />
                   </span>
                 )}
               </div>

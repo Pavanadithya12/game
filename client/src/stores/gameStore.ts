@@ -48,6 +48,7 @@ export interface GameState {
   scores: Record<string, number>;
   turnScores: TurnScore[] | null;
   roundSummary: RoundSummary | null;
+  countdownInfo: { secondsLeft: number; message: string } | null;
   finalResult: { finalScores: Record<string, number>; winner: { id: string; name: string; score: number } } | null;
   
   // Notifications  
@@ -60,6 +61,7 @@ export interface GameState {
   setRoom: (room: Room | null) => void;
   setRoomList: (rooms: RoomListItem[]) => void;
   updateRoom: (room: Room) => void;
+  setCountdownInfo: (info: { secondsLeft: number; message: string } | null) => void;
   setGame: (game: Game | null) => void;
   setPhase: (phase: GamePhase) => void;
   setCurrentDrawer: (id: string | null) => void;
@@ -107,6 +109,7 @@ export const useGameStore = create<GameState>((set) => ({
   scores: {},
   turnScores: null,
   roundSummary: null,
+  countdownInfo: null,
   finalResult: null,
   
   notifications: [],
@@ -121,6 +124,7 @@ export const useGameStore = create<GameState>((set) => ({
   setRoom: (room) => set({ room }),
   setRoomList: (rooms) => set({ roomList: rooms }),
   updateRoom: (room) => set({ room }),
+  setCountdownInfo: (countdownInfo) => set({ countdownInfo }),
   
   setGame: (game) => set({ game }),
   setPhase: (phase) => set({ phase }),
@@ -168,6 +172,7 @@ export const useGameStore = create<GameState>((set) => ({
     scores: {},
     turnScores: null,
     roundSummary: null,
+    countdownInfo: null,
     finalResult: null,
   })
 }));

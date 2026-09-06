@@ -4,37 +4,37 @@
 
 @layer base {
   :root {
-    --color-bg: #1a1a2e;
-    --color-surface: #16213e;
-    --color-accent: #e94560;
-    --color-primary: #0f3460;
+    --color-bg: #090d16;
+    --color-surface: #111827;
+    --color-accent: #06b6d4;
+    --color-primary: #3b82f6;
   }
 }
 
 body {
-  background-color: var(--color-bg);
-  color: white;
+  background-color: #090d16;
+  color: #f8fafc;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+/* Modern Dark Gaming Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-surface);
+  background: #0b0f19;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
+  background: #1e293b;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent);
+  background: #06b6d4;
 }

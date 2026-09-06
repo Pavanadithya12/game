@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import { getSocket } from '../hooks/useSocket';
-import { Stroke, Point, Tool, GamePhase } from '../types';
+import { Stroke, Point, Tool, GamePhase, StrokeSegment } from '../types';
 
 const VIRTUAL_WIDTH = 800;
 const VIRTUAL_HEIGHT = 600;
@@ -10,87 +10,105 @@ export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const lastPointRef = useRef<Point | null>(null);
   const currentPointsRef = useRef<Point[]>([]);
+  const currentStrokeIdRef = useRef<string>('');
 
   const store = useGameStore();
   const socket = getSocket();
 
   const isDrawer = store.currentDrawerId === store.playerId && store.phase === GamePhase.DRAWING;
 
-  // Redraw all strokes on canvas
+  // Draw a single line segment directly onto the canvas (0.01ms O(1) rendering)
+  const drawSegment = useCallback((
+    ctx: CanvasRenderingContext2D,
+    from: Point,
+    to: Point,
+    color: string,
+    brushSize: number,
+    tool: Tool
+  ) => {
+    ctx.beginPath();
+    ctx.strokeStyle = tool === Tool.ERASER ? '#FFFFFF' : color;
+    ctx.fillStyle = tool === Tool.ERASER ? '#FFFFFF' : color;
+    ctx.lineWidth = brushSize;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+
+    // Fill small circle at the end to ensure smooth continuous joints
+    ctx.beginPath();
+    ctx.arc(to.x, to.y, brushSize / 2, 0, Math.PI * 2);
+    ctx.fill();
+  }, []);
+
+  // Redraw all strokes from history (only called on undo, clear, or initial mount)
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
-    // Draw saved strokes
     store.strokes.forEach((stroke) => {
       if (stroke.points.length < 1) return;
 
       ctx.beginPath();
       ctx.strokeStyle = stroke.tool === Tool.ERASER ? '#FFFFFF' : stroke.color;
+      ctx.fillStyle = stroke.tool === Tool.ERASER ? '#FFFFFF' : stroke.color;
       ctx.lineWidth = stroke.brushSize;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
       if (stroke.points.length === 1) {
         ctx.arc(stroke.points[0].x, stroke.points[0].y, stroke.brushSize / 2, 0, Math.PI * 2);
-        ctx.fillStyle = stroke.tool === Tool.ERASER ? '#FFFFFF' : stroke.color;
         ctx.fill();
       } else {
-        ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
         for (let i = 1; i < stroke.points.length; i++) {
           const prev = stroke.points[i - 1];
           const curr = stroke.points[i];
-          const midX = (prev.x + curr.x) / 2;
-          const midY = (prev.y + curr.y) / 2;
-          ctx.quadraticCurveTo(prev.x, prev.y, midX, midY);
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(curr.x, curr.y);
+          ctx.stroke();
         }
-        const last = stroke.points[stroke.points.length - 1];
-        ctx.lineTo(last.x, last.y);
-        ctx.stroke();
       }
     });
+  }, [store.strokes]);
 
-    // Draw active stroke if drawing
-    if (currentPointsRef.current.length > 0) {
-      const points = currentPointsRef.current;
-      ctx.beginPath();
-      ctx.strokeStyle = store.currentTool === Tool.ERASER ? '#FFFFFF' : store.currentColor;
-      ctx.lineWidth = store.brushSize;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      if (points.length === 1) {
-        ctx.arc(points[0].x, points[0].y, store.brushSize / 2, 0, Math.PI * 2);
-        ctx.fillStyle = store.currentTool === Tool.ERASER ? '#FFFFFF' : store.currentColor;
-        ctx.fill();
-      } else {
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
-          const prev = points[i - 1];
-          const curr = points[i];
-          const midX = (prev.x + curr.x) / 2;
-          const midY = (prev.y + curr.y) / 2;
-          ctx.quadraticCurveTo(prev.x, prev.y, midX, midY);
-        }
-        const last = points[points.length - 1];
-        ctx.lineTo(last.x, last.y);
-        ctx.stroke();
-      }
-    }
-  }, [store.strokes, store.currentTool, store.currentColor, store.brushSize]);
-
+  // Initial mount & stroke changes (undo/clear/new turn)
   useEffect(() => {
     redrawCanvas();
   }, [redrawCanvas]);
 
-  // Convert client coordinates to virtual canvas (800x600) coordinates
+  // Listen for real-time stroke segments from other players for zero-lag live viewing
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleLiveSegment = (segment: StrokeSegment) => {
+      // If we are the drawer, ignore our own echoed segments
+      if (isDrawer) return;
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      drawSegment(ctx, segment.from, segment.to, segment.color, segment.brushSize, segment.tool);
+    };
+
+    socket.on('strokeSegmentReceived', handleLiveSegment);
+    return () => {
+      socket.off('strokeSegmentReceived', handleLiveSegment);
+    };
+  }, [socket, isDrawer, drawSegment]);
+
+  // Convert client coordinates to virtual canvas (800x600)
   const getCoordinates = (e: React.MouseEvent | React.TouchEvent): Point | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -123,26 +141,63 @@ export default function Canvas() {
     if (!point) return;
 
     setIsDrawing(true);
+    lastPointRef.current = point;
     currentPointsRef.current = [point];
-    redrawCanvas();
+    currentStrokeIdRef.current = Math.random().toString(36).substring(2, 9);
+
+    // Draw single dot on start
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.beginPath();
+        ctx.fillStyle = store.currentTool === Tool.ERASER ? '#FFFFFF' : store.currentColor;
+        ctx.arc(point.x, point.y, store.brushSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
   };
 
   const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing || !isDrawer) return;
-    const point = getCoordinates(e);
-    if (!point) return;
+    if (!isDrawing || !isDrawer || !lastPointRef.current) return;
+    const currentPoint = getCoordinates(e);
+    if (!currentPoint) return;
 
-    currentPointsRef.current.push(point);
-    redrawCanvas();
+    const prevPoint = lastPointRef.current;
+    lastPointRef.current = currentPoint;
+    currentPointsRef.current.push(currentPoint);
+
+    // 1. Draw segment directly on canvas instantly (Zero Lag)
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        drawSegment(ctx, prevPoint, currentPoint, store.currentColor, store.brushSize, store.currentTool);
+      }
+    }
+
+    // 2. Stream segment to other players immediately so they see it live
+    if (socket) {
+      socket.emit('sendStrokeSegment', {
+        strokeId: currentStrokeIdRef.current,
+        playerId: store.playerId || '',
+        tool: store.currentTool,
+        color: store.currentColor,
+        brushSize: store.brushSize,
+        from: prevPoint,
+        to: currentPoint,
+      });
+    }
   };
 
   const handleEnd = () => {
     if (!isDrawing || !isDrawer) return;
     setIsDrawing(false);
+    lastPointRef.current = null;
 
     if (currentPointsRef.current.length > 0) {
       const newStroke: Stroke = {
-        id: Math.random().toString(36).substring(2, 9),
+        id: currentStrokeIdRef.current || Math.random().toString(36).substring(2, 9),
         playerId: store.playerId || '',
         tool: store.currentTool,
         color: store.currentColor,
@@ -156,7 +211,6 @@ export default function Canvas() {
       }
     }
     currentPointsRef.current = [];
-    redrawCanvas();
   };
 
   return (
@@ -175,7 +229,7 @@ export default function Canvas() {
         onTouchStart={handleStart}
         onTouchMove={handleMove}
         onTouchEnd={handleEnd}
-        className={`max-w-full max-h-full object-contain aspect-[4/3] bg-white rounded-lg shadow-md ${
+        className={`max-w-full max-h-full object-contain aspect-[4/3] bg-white rounded-xl shadow-2xl transition-all ${
           isDrawer ? 'cursor-crosshair' : 'cursor-default pointer-events-none'
         }`}
       />

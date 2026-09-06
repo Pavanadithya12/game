@@ -40,6 +40,15 @@ export interface User {
   isConnected: boolean;
 }
 
+export interface RoomSettings {
+  maxPlayers?: number;
+  totalRounds?: number;
+  turnDuration?: number; // seconds: 60, 70, 80, 90, etc.
+  selectedCategories?: string[];
+  customWords?: string[];
+  onlyCustomWords?: boolean;
+}
+
 export interface Room {
   id: string;
   name: string;
@@ -48,6 +57,9 @@ export interface Room {
   maxPlayers: number;
   totalRounds: number;
   turnDuration: number; // seconds
+  selectedCategories?: string[];
+  customWords?: string[];
+  onlyCustomWords?: boolean;
   players: User[];
   createdAt: string;
 }
@@ -106,6 +118,16 @@ export interface Stroke {
   points: Point[];
 }
 
+export interface StrokeSegment {
+  strokeId: string;
+  playerId: string;
+  tool: Tool;
+  color: string;
+  brushSize: number;
+  from: Point;
+  to: Point;
+}
+
 // --- Chat ---
 
 export interface ChatMessage {
@@ -157,11 +179,12 @@ export interface RoundSummary {
 // --- Socket.IO Event Maps ---
 
 export interface ClientToServerEvents {
-  // Room
+  // Room & Settings
   createRoom: (data: { username: string; roomName: string }) => void;
   joinRoom: (data: { username: string; roomId: string }) => void;
   leaveRoom: () => void;
   listRooms: () => void;
+  updateRoomSettings: (settings: RoomSettings) => void;
 
   // Game
   startGame: () => void;
@@ -169,6 +192,7 @@ export interface ClientToServerEvents {
 
   // Drawing
   sendStroke: (stroke: Stroke) => void;
+  sendStrokeSegment: (segment: StrokeSegment) => void;
   undoStroke: () => void;
   clearCanvas: () => void;
 
@@ -206,6 +230,7 @@ export interface ServerToClientEvents {
     scores: TurnScore[];
   }) => void;
   roundEnded: (summary: RoundSummary) => void;
+  roundCountdown: (data: { secondsLeft: number; message: string }) => void;
   gameEnded: (data: {
     finalScores: Record<string, number>;
     winner: { id: string; name: string; score: number };
@@ -214,6 +239,7 @@ export interface ServerToClientEvents {
 
   // Drawing
   strokeReceived: (stroke: Stroke) => void;
+  strokeSegmentReceived: (segment: StrokeSegment) => void;
   strokeUndone: (data: { playerId: string }) => void;
   canvasCleared: () => void;
 

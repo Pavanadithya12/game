@@ -60,6 +60,14 @@ export function registerHandlers(
     socket.emit('roomList', roomManager.listRooms());
   });
 
+  socket.on('updateRoomSettings', (settings) => {
+    try {
+      roomManager.updateRoomSettings(playerId, settings);
+    } catch (err: any) {
+      socket.emit('error', { message: err.message });
+    }
+  });
+
   socket.on('startGame', () => {
     try {
       const game = roomManager.startGame(playerId);
@@ -142,6 +150,13 @@ export function registerHandlers(
     const roomId = roomManager.getPlayerRoomId(playerId);
     if (roomId) {
       socket.to(roomId).emit('strokeReceived', stroke);
+    }
+  });
+
+  socket.on('sendStrokeSegment', (segment) => {
+    const roomId = roomManager.getPlayerRoomId(playerId);
+    if (roomId) {
+      socket.to(roomId).emit('strokeSegmentReceived', segment);
     }
   });
 
