@@ -17,5 +17,10 @@ echo Keep this window open while playing online!
 echo Your public HTTPS link will appear below:
 echo ===================================================
 echo.
-ssh -o StrictHostKeyChecking=no -R 80:localhost:3001 nokey@localhost.run
-pause
+
+:tunnel_loop
+ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=5 -o StrictHostKeyChecking=no -R 80:localhost:3001 nokey@localhost.run
+echo.
+echo [Tunnel disconnected. Reconnecting in 3 seconds...]
+timeout /t 3 /nobreak >nul
+goto tunnel_loop
