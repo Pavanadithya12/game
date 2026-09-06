@@ -51,7 +51,7 @@ export default function LobbyPage() {
 
   if (!store.room) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background text-cyan-400 font-bold text-xl animate-pulse">
+      <div className="flex items-center justify-center h-screen bg-slate-50 text-cyan-600 font-bold text-xl animate-pulse">
         Connecting to MawaBro room...
       </div>
     );
@@ -108,28 +108,28 @@ export default function LobbyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-slate-100 flex flex-col p-4 md:p-6 select-none">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col p-4 md:p-6 select-none">
       <div className="max-w-7xl w-full mx-auto flex-1 flex flex-col gap-5">
         
         {/* Top Header Card */}
-        <div className="bg-surface/90 backdrop-blur-md p-5 md:p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between border border-slate-800 shadow-dark-card gap-4">
+        <div className="bg-white p-5 md:p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between border border-slate-200 shadow-md gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-black text-2xl text-white shadow-neon-cyan">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-black text-2xl text-white shadow-md">
               M
             </div>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">{store.room.name}</h1>
-                <span className="bg-cyan-500/20 text-cyan-300 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-cyan-500/30">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">{store.room.name}</h1>
+                <span className="bg-cyan-100 text-cyan-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-cyan-300">
                   Lobby
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <button 
                   onClick={copyRoomId}
-                  className="flex items-center gap-2 text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg transition-colors text-slate-300 border border-slate-700 hover:border-cyan-500"
+                  className="flex items-center gap-2 text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded-lg transition-colors text-slate-700 border border-slate-300 hover:border-cyan-500 font-medium cursor-pointer"
                 >
-                  <Copy size={13} /> Room Code: <span className="font-mono font-bold text-cyan-400">{store.room.id}</span>
+                  <Copy size={13} /> Room Code: <span className="font-mono font-bold text-cyan-600">{store.room.id}</span>
                 </button>
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function LobbyPage() {
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
             <button
               onClick={handleLeaveRoom}
-              className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-rose-500/20 text-rose-400 font-bold py-2.5 px-5 rounded-2xl transition-all border border-slate-700 hover:border-rose-500/40 text-sm"
+              className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-rose-100 text-rose-600 font-bold py-2.5 px-5 rounded-2xl transition-all border border-slate-300 hover:border-rose-300 text-sm cursor-pointer"
             >
               <LogOut size={16} /> Leave
             </button>
@@ -146,7 +146,7 @@ export default function LobbyPage() {
               <button
                 onClick={handleStartGame}
                 disabled={store.room.players.length < 2}
-                className="flex-1 md:flex-initial flex items-center justify-center gap-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold py-3 px-8 rounded-2xl transition-all shadow-neon-cyan disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-base transform hover:scale-[1.02]"
+                className="flex-1 md:flex-initial flex items-center justify-center gap-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-extrabold py-3 px-8 rounded-2xl transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-base transform hover:scale-[1.02]"
               >
                 <Play size={18} className="fill-current" /> Start Game
               </button>
@@ -158,13 +158,13 @@ export default function LobbyPage() {
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-0">
           
           {/* Left Column: Player Roster (4 Cols) */}
-          <div className="lg:col-span-4 flex flex-col bg-surface/90 backdrop-blur-md rounded-3xl border border-slate-800 shadow-dark-card overflow-hidden">
-            <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
-              <h2 className="font-bold flex items-center gap-2 text-slate-200">
-                <Users size={18} className="text-cyan-400" /> 
+          <div className="lg:col-span-4 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+              <h2 className="font-bold flex items-center gap-2 text-slate-800">
+                <Users size={18} className="text-cyan-600" /> 
                 <span>Players</span>
               </h2>
-              <span className="text-xs font-mono bg-cyan-500/10 text-cyan-400 px-2.5 py-1 rounded-full border border-cyan-500/20 font-bold">
+              <span className="text-xs font-mono bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-full border border-cyan-300 font-bold">
                 {store.room.players.length} / {store.room.maxPlayers}
               </span>
             </div>
@@ -177,25 +177,25 @@ export default function LobbyPage() {
                     key={player.id} 
                     className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
                       isMe 
-                        ? 'border-cyan-500/40 bg-cyan-500/10 shadow-sm' 
-                        : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                        ? 'border-cyan-400 bg-cyan-50/80 shadow-sm' 
+                        : 'border-slate-200 bg-slate-50 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div 
-                        className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-md shrink-0 ring-2 ring-white/10"
+                        className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-sm shrink-0"
                         style={{ backgroundColor: player.avatarColor }}
                       >
                         {player.username.charAt(0).toUpperCase()}
                       </div>
-                      <div className="truncate font-semibold text-slate-200 text-sm">
+                      <div className="truncate font-bold text-slate-800 text-sm">
                         {player.username}
-                        {isMe && <span className="text-xs text-cyan-400 font-bold ml-1.5">(You)</span>}
+                        {isMe && <span className="text-xs text-cyan-600 font-bold ml-1.5">(You)</span>}
                       </div>
                     </div>
 
                     {player.isHost && (
-                      <div className="flex items-center gap-1 bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold px-2 py-1 rounded-xl">
+                      <div className="flex items-center gap-1 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold px-2 py-1 rounded-xl">
                         <Star size={12} className="fill-current" /> Host
                       </div>
                     )}
@@ -205,23 +205,23 @@ export default function LobbyPage() {
 
               {/* Waiting slots */}
               {Array.from({ length: Math.max(0, store.room.maxPlayers - store.room.players.length) }).map((_, i) => (
-                <div key={`slot-${i}`} className="flex items-center gap-3 p-3 rounded-2xl border border-dashed border-slate-800/80 bg-slate-900/20 opacity-40">
-                  <div className="w-10 h-10 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-600 text-xs">?</div>
-                  <span className="text-xs text-slate-500 font-medium italic">Empty Slot</span>
+                <div key={`slot-${i}`} className="flex items-center gap-3 p-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 opacity-60">
+                  <div className="w-10 h-10 rounded-2xl bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-500 font-bold text-xs">?</div>
+                  <span className="text-xs text-slate-400 font-medium italic">Empty Slot</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Middle Column: Host Game Settings (5 Cols) */}
-          <div className="lg:col-span-5 flex flex-col bg-surface/90 backdrop-blur-md rounded-3xl border border-slate-800 shadow-dark-card overflow-hidden">
-            <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
-              <h2 className="font-bold flex items-center gap-2 text-slate-200">
-                <Settings size={18} className="text-cyan-400" />
+          <div className="lg:col-span-5 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+              <h2 className="font-bold flex items-center gap-2 text-slate-800">
+                <Settings size={18} className="text-cyan-600" />
                 <span>Game Settings</span>
               </h2>
               {!isHost && (
-                <span className="text-xs text-slate-400 italic">Host-managed</span>
+                <span className="text-xs text-slate-500 italic">Host-managed</span>
               )}
             </div>
 
@@ -229,10 +229,10 @@ export default function LobbyPage() {
               {/* 1. Draw Time Settings */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Clock size={14} className="text-cyan-400" /> Draw Time (Seconds)
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                    <Clock size={14} className="text-cyan-600" /> Draw Time (Seconds)
                   </label>
-                  <span className="text-sm font-black text-cyan-400 font-mono bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/20">
+                  <span className="text-sm font-black text-cyan-700 font-mono bg-cyan-100 px-2 py-0.5 rounded-lg border border-cyan-300">
                     {store.room.turnDuration}s
                   </span>
                 </div>
@@ -244,24 +244,8 @@ export default function LobbyPage() {
                       onClick={() => handleUpdateSettings({ turnDuration: sec })}
                       className={`py-2 rounded-xl text-xs font-bold font-mono transition-all border ${
                         store.room!.turnDuration === sec
-                          ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-neon-cyan font-black scale-105'
-                          : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-800 disabled:opacity-60'
-                      }`}
-                    >
-                      {sec}s
-                    </button>
-                  ))}
-                </div>
-                <div className="grid grid-cols-4 gap-2 mt-2">
-                  {[30, 45, 100, 120].map((sec) => (
-                    <button
-                      key={sec}
-                      disabled={!isHost}
-                      onClick={() => handleUpdateSettings({ turnDuration: sec })}
-                      className={`py-1.5 rounded-xl text-xs font-semibold font-mono transition-all border ${
-                        store.room!.turnDuration === sec
-                          ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-neon-cyan font-bold scale-105'
-                          : 'bg-slate-900/40 hover:bg-slate-800 text-slate-400 border-slate-800/80 disabled:opacity-40'
+                          ? 'bg-cyan-500 text-white border-cyan-600 shadow-md font-black scale-105'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 disabled:opacity-60 cursor-pointer'
                       }`}
                     >
                       {sec}s
@@ -273,10 +257,10 @@ export default function LobbyPage() {
               {/* 2. Rounds Adjustment */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Layers size={14} className="text-cyan-400" /> Total Rounds
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                    <Layers size={14} className="text-cyan-600" /> Total Rounds
                   </label>
-                  <span className="text-sm font-black text-cyan-400 font-mono bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/20">
+                  <span className="text-sm font-black text-cyan-700 font-mono bg-cyan-100 px-2 py-0.5 rounded-lg border border-cyan-300">
                     {store.room.totalRounds} Rounds
                   </span>
                 </div>
@@ -288,8 +272,8 @@ export default function LobbyPage() {
                       onClick={() => handleUpdateSettings({ totalRounds: rnd })}
                       className={`py-2 rounded-xl text-xs font-bold font-mono transition-all border ${
                         store.room!.totalRounds === rnd
-                          ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-neon-cyan font-black scale-105'
-                          : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-800 disabled:opacity-60'
+                          ? 'bg-cyan-500 text-white border-cyan-600 shadow-md font-black scale-105'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 disabled:opacity-60 cursor-pointer'
                       }`}
                     >
                       {rnd}
@@ -301,10 +285,10 @@ export default function LobbyPage() {
               {/* 3. Player Limits */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Users size={14} className="text-cyan-400" /> Max Players
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                    <Users size={14} className="text-cyan-600" /> Max Players
                   </label>
-                  <span className="text-sm font-black text-cyan-400 font-mono bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/20">
+                  <span className="text-sm font-black text-cyan-700 font-mono bg-cyan-100 px-2 py-0.5 rounded-lg border border-cyan-300">
                     {store.room.maxPlayers}
                   </span>
                 </div>
@@ -316,8 +300,8 @@ export default function LobbyPage() {
                       onClick={() => handleUpdateSettings({ maxPlayers: limit })}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition-all border ${
                         store.room!.maxPlayers === limit
-                          ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-black'
-                          : 'bg-slate-900/80 hover:bg-slate-800 text-slate-400 border-slate-800 disabled:opacity-50'
+                          ? 'bg-cyan-500 text-white border-cyan-600 font-black'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 disabled:opacity-50 cursor-pointer'
                       }`}
                     >
                       {limit}
@@ -329,10 +313,10 @@ export default function LobbyPage() {
               {/* 4. Number of Clues (Hints) */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Sparkles size={14} className="text-cyan-400" /> Clues / Hints (4, 5, or 6)
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-cyan-600" /> Clues / Hints
                   </label>
-                  <span className="text-sm font-black text-cyan-400 font-mono bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/20">
+                  <span className="text-sm font-black text-cyan-700 font-mono bg-cyan-100 px-2 py-0.5 rounded-lg border border-cyan-300">
                     {store.room.maxClues || 4} Clues
                   </span>
                 </div>
@@ -344,8 +328,8 @@ export default function LobbyPage() {
                       onClick={() => handleUpdateSettings({ maxClues: clue })}
                       className={`py-2 rounded-xl text-xs font-bold font-mono transition-all border ${
                         (store.room!.maxClues || 4) === clue
-                          ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-neon-cyan font-black scale-105'
-                          : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-800 disabled:opacity-60'
+                          ? 'bg-cyan-500 text-white border-cyan-600 shadow-md font-black scale-105'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 disabled:opacity-60 cursor-pointer'
                       }`}
                     >
                       {clue} Clues
@@ -354,10 +338,10 @@ export default function LobbyPage() {
                 </div>
               </div>
 
-              {/* 4. Exciting Word Categories */}
+              {/* 5. Word Categories */}
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-2.5">
-                  <Sparkles size={14} className="text-cyan-400" /> Word Categories
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5 mb-2.5">
+                  <Sparkles size={14} className="text-cyan-600" /> Word Categories
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORIES.map((cat) => {
@@ -367,10 +351,10 @@ export default function LobbyPage() {
                         key={cat.id}
                         disabled={!isHost}
                         onClick={() => toggleCategory(cat.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border flex items-center gap-1.5 ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
                           active
-                            ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500 shadow-sm'
-                            : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:border-slate-700 disabled:opacity-50'
+                            ? 'bg-cyan-100 text-cyan-800 border-cyan-400 shadow-sm'
+                            : 'bg-slate-100 text-slate-600 border-slate-300 hover:border-slate-400 disabled:opacity-50 cursor-pointer'
                         }`}
                       >
                         {active && <Check size={12} />}
@@ -381,12 +365,12 @@ export default function LobbyPage() {
                 </div>
               </div>
 
-              {/* 5. Custom Words Option */}
+              {/* 6. Custom Words Option */}
               {isHost && (
-                <div className="pt-2 border-t border-slate-800/80">
+                <div className="pt-2 border-t border-slate-200">
                   <button
                     onClick={() => setShowCustomWords(!showCustomWords)}
-                    className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                    className="text-xs font-bold text-cyan-600 hover:text-cyan-700 flex items-center gap-1 cursor-pointer"
                   >
                     {showCustomWords ? '▾ Hide Custom Words' : '▸ Add Custom Words (Optional)'}
                   </button>
@@ -398,21 +382,21 @@ export default function LobbyPage() {
                         value={customWordsInput}
                         onChange={(e) => setCustomWordsInput(e.target.value)}
                         placeholder="e.g. avatar, pikachu, ferrari, matrix, tacos"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 font-medium"
                       />
                       <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
+                        <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer font-medium">
                           <input
                             type="checkbox"
                             checked={Boolean(store.room.onlyCustomWords)}
                             onChange={(e) => handleUpdateSettings({ onlyCustomWords: e.target.checked })}
-                            className="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0"
+                            className="rounded bg-slate-100 border-slate-300 text-cyan-600 focus:ring-0"
                           />
                           <span>Use custom words exclusively</span>
                         </label>
                         <button
                           onClick={handleCustomWordsSave}
-                          className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+                          className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
                         >
                           Save Words
                         </button>
@@ -425,9 +409,9 @@ export default function LobbyPage() {
           </div>
 
           {/* Right Column: Lobby Chat (3 Cols) */}
-          <div className="lg:col-span-3 flex flex-col bg-surface/90 backdrop-blur-md rounded-3xl border border-slate-800 shadow-dark-card overflow-hidden">
-            <div className="p-4 border-b border-slate-800 bg-slate-900/50">
-              <h2 className="font-bold text-sm text-slate-300">Lobby Chat</h2>
+          <div className="lg:col-span-3 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
+            <div className="p-4 border-b border-slate-200 bg-slate-50">
+              <h2 className="font-bold text-sm text-slate-800">Lobby Chat</h2>
             </div>
             <div className="flex-1 min-h-[300px] flex flex-col">
               <ChatPanel inGame={false} />

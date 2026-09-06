@@ -4,10 +4,10 @@
 
 @layer base {
   :root {
-    --color-bg: #090d16;
-    --color-surface: #111827;
-    --color-accent: #06b6d4;
-    --color-primary: #3b82f6;
+    --color-bg: #f8fafc;
+    --color-surface: #ffffff;
+    --color-accent: #0284c7;
+    --color-primary: #2563eb;
   }
 
   html,
@@ -26,29 +26,29 @@
 }
 
 body {
-  background-color: #090d16;
-  color: #f8fafc;
+  background-color: #f8fafc;
+  color: #0f172a;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* Modern Dark Gaming Scrollbar */
+/* Light Theme Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #f1f5f9;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #06b6d4;
+  background: #0284c7;
 }

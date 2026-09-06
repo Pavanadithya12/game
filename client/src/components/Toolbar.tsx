@@ -48,19 +48,19 @@ export default function Toolbar() {
 
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-2.5 p-2.5 bg-surface/95 backdrop-blur-md rounded-2xl border border-slate-800 shadow-dark-card transition-all ${
+      className={`flex flex-wrap items-center justify-between gap-2.5 p-2.5 bg-white rounded-2xl border border-slate-300 shadow-md transition-all ${
         isDrawer ? 'opacity-100' : 'opacity-30 pointer-events-none'
       }`}
     >
       {/* Tool Buttons */}
-      <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+      <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300">
         <button
           onClick={() => store.setTool(Tool.PENCIL)}
           title="Pencil"
-          className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${
+          className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
             store.currentTool === Tool.PENCIL
-              ? 'bg-cyan-500 text-slate-950 shadow-neon-cyan'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'bg-cyan-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
           }`}
         >
           <Pencil size={15} />
@@ -69,10 +69,10 @@ export default function Toolbar() {
         <button
           onClick={() => store.setTool(Tool.ERASER)}
           title="Eraser"
-          className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${
+          className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
             store.currentTool === Tool.ERASER
-              ? 'bg-cyan-500 text-slate-950 shadow-neon-cyan'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'bg-cyan-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
           }`}
         >
           <Eraser size={15} />
@@ -81,16 +81,16 @@ export default function Toolbar() {
       </div>
 
       {/* Brush Sizes */}
-      <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+      <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300">
         {BRUSH_SIZES.map((b) => (
           <button
             key={b.size}
             onClick={() => store.setBrushSize(b.size)}
             title={`Brush size ${b.label}`}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
               store.brushSize === b.size
-                ? 'bg-slate-800 text-cyan-400 border border-cyan-500'
-                : 'text-slate-500 hover:text-slate-300 hover:bg-slate-900'
+                ? 'bg-white text-cyan-600 border border-cyan-500 shadow-sm'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200'
             }`}
           >
             <div
@@ -102,7 +102,7 @@ export default function Toolbar() {
       </div>
 
       {/* Color Swatches */}
-      <div className="flex items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 overflow-x-auto max-w-full">
+      <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-300 overflow-x-auto max-w-full">
         {COLORS.map((c) => (
           <button
             key={c}
@@ -111,29 +111,29 @@ export default function Toolbar() {
               store.setTool(Tool.PENCIL);
             }}
             title={c}
-            className={`w-5 h-5 rounded-md transition-all hover:scale-125 shrink-0 ${
+            className={`w-5 h-5 rounded-md transition-all hover:scale-125 shrink-0 cursor-pointer ${
               store.currentColor === c && store.currentTool === Tool.PENCIL
-                ? 'scale-125 ring-2 ring-cyan-400 ring-offset-1 ring-offset-slate-950'
+                ? 'scale-125 ring-2 ring-cyan-500 ring-offset-1 ring-offset-white'
                 : ''
             }`}
-            style={{ backgroundColor: c, border: c === '#FFFFFF' ? '1px solid #475569' : undefined }}
+            style={{ backgroundColor: c, border: c === '#FFFFFF' ? '1px solid #cbd5e1' : undefined }}
           />
         ))}
       </div>
 
       {/* Undo & Clear */}
-      <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+      <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300">
         <button
           onClick={handleUndo}
           title="Undo"
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors cursor-pointer"
         >
           <Undo2 size={16} />
         </button>
         <button
           onClick={handleClear}
           title="Clear Canvas"
-          className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/15 transition-colors"
+          className="p-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
         >
           <Trash2 size={16} />
         </button>

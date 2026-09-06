@@ -4,7 +4,7 @@ import { useGameStore } from '../stores/gameStore';
 import { ServerToClientEvents, ClientToServerEvents } from '../types';
 import { useNavigate } from 'react-router-dom';
 
-const LIVE_BACKEND_URL = 'https://11f74b1bd638db.lhr.life';
+const LIVE_BACKEND_URL = 'https://passes-grad-absence-larger.trycloudflare.com';
 
 const url = import.meta.env.PROD
   ? (window.location.origin.includes('vercel.app') ? LIVE_BACKEND_URL : window.location.origin)

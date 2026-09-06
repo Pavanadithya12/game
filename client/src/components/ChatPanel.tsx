@@ -23,7 +23,6 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
     store.turnScores?.some((s) => s.playerId === store.playerId && s.pointsEarned > 0);
 
   const scrollToBottom = () => {
-    // Only scroll the internal message container, NEVER scroll the outer window or canvas!
     if (listContainerRef.current) {
       listContainerRef.current.scrollTop = listContainerRef.current.scrollHeight;
     }
@@ -48,14 +47,14 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0 bg-surface/90 backdrop-blur-md rounded-2xl border border-slate-800 shadow-dark-card overflow-hidden">
+    <div className="flex-1 flex flex-col h-full min-h-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Message List */}
       <div 
         ref={listContainerRef} 
         className="flex-1 min-h-0 p-3 overflow-y-auto space-y-2 text-xs overscroll-contain"
       >
         {store.messages.length === 0 ? (
-          <div className="text-slate-500 text-xs italic text-center py-6">
+          <div className="text-slate-400 text-xs italic text-center py-6">
             {inGame ? 'Type your guess in the box below!' : 'Welcome to the lobby!'}
           </div>
         ) : (
@@ -64,11 +63,11 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
               return (
                 <div
                   key={msg.id}
-                  className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 p-2 rounded-xl text-xs flex items-center gap-1.5 font-bold animate-fadeIn"
+                  className="bg-emerald-100 border border-emerald-300 text-emerald-800 p-2 rounded-xl text-xs flex items-center gap-1.5 font-bold animate-fadeIn"
                 >
-                  <CheckCircle2 size={13} className="shrink-0" />
+                  <CheckCircle2 size={13} className="shrink-0 text-emerald-600" />
                   <span>
-                    <strong className="text-white">{msg.playerName}</strong> {msg.text}
+                    <strong className="text-slate-900">{msg.playerName}</strong> {msg.text}
                   </span>
                 </div>
               );
@@ -78,11 +77,11 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
               return (
                 <div
                   key={msg.id}
-                  className="bg-amber-500/15 border border-amber-500/30 text-amber-300 p-2 rounded-xl text-xs flex items-center gap-1.5 animate-fadeIn"
+                  className="bg-amber-100 border border-amber-300 text-amber-800 p-2 rounded-xl text-xs flex items-center gap-1.5 animate-fadeIn"
                 >
-                  <AlertCircle size={13} className="shrink-0" />
+                  <AlertCircle size={13} className="shrink-0 text-amber-600" />
                   <span>
-                    <strong className="text-white">{msg.playerName}</strong>: {msg.text} (so close!)
+                    <strong className="text-slate-900">{msg.playerName}</strong>: {msg.text} (so close!)
                   </span>
                 </div>
               );
@@ -94,11 +93,11 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
               <div
                 key={msg.id}
                 className={`p-2 rounded-xl break-words transition-all ${
-                  isOwn ? 'bg-slate-900/90 border border-slate-800' : 'bg-slate-950/60'
+                  isOwn ? 'bg-cyan-50 border border-cyan-200' : 'bg-slate-50 border border-slate-200'
                 }`}
               >
-                <span className="font-bold text-cyan-400 mr-1.5">{msg.playerName}:</span>
-                <span className="text-slate-200">{msg.text}</span>
+                <span className="font-bold text-cyan-700 mr-1.5">{msg.playerName}:</span>
+                <span className="text-slate-800 font-medium">{msg.text}</span>
               </div>
             );
           })
@@ -106,7 +105,7 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-2 border-t border-slate-800 bg-slate-900/70 flex gap-2 shrink-0">
+      <form onSubmit={handleSubmit} className="p-2 border-t border-slate-200 bg-slate-50 flex gap-2 shrink-0">
         <input
           type="text"
           value={text}
@@ -121,12 +120,12 @@ export default function ChatPanel({ inGame = false }: ChatPanelProps) {
               ? 'Type your guess here...'
               : 'Type a message...'
           }
-          className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-inner"
         />
         <button
           type="submit"
           disabled={!text.trim() || Boolean(hasGuessedCorrectly && isDrawingPhase)}
-          className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-3 py-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed font-bold"
+          className="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed font-bold cursor-pointer shadow-sm"
         >
           <Send size={14} />
         </button>
