@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: mawabro-game
+    runtime: node
+    plan: free
+    buildCommand: npm run postinstall && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
